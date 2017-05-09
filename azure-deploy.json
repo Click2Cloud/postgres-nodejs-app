@@ -45,7 +45,7 @@
     },
     "repoUrl": {
       "type": "string",
-      "defaultValue": "https://github.com/shrutikamendhe/mysupernodesite.git",
+      "defaultValue": "https://github.com/Click2Cloud/postgres-nodejs-app.git",
       "metadata": {
         "description": "The URL for the GitHub repository that contains the project to deploy."
       }
