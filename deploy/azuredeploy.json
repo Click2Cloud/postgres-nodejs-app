@@ -46,7 +46,7 @@
     },
     "branch": {
       "type": "string",
-      "defaultValue": "master",
+      "defaultValue": "sapan",
       "metadata": {
         "description": "The branch of the GitHub repository to use."
       }
