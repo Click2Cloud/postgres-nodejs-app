@@ -14,7 +14,8 @@ var pg = require("pg"); // require Postgres module
     host: config.dayplanner.dbConfig.host,
     ssl: true
 };*/
-var conString = "postgres://postgres@postgres-dayplanner:pg%4012345@postgres-dayplanner.database.windows.net:5432/dayplanner"
+//var conString = "postgres://postgres@postgres-dayplanner:pg%4012345@postgres-dayplanner.database.windows.net:5432/dayplanner"
+var conString = process.env.POSTGRESQLCONNSTR_DefaultConnection;
 
 /* GET home page. */
 router.get('/', function (req, res) {
