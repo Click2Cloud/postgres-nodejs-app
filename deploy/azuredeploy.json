@@ -31,19 +31,6 @@
         "description": "The pricing tier for the hosting plan."
       }
     },
-    "workerSize": {
-      "type": "int",
-      "defaultValue": 0,
-      "minValue": 0,
-      "allowedValues": [
-        0,
-        1,
-        2
-      ],
-      "metadata": {
-        "description": "The instance size of the hosting plan (small, medium, or large)"
-      }
-    },
     "repoUrl": {
       "type": "string",
       "defaultValue": "https://github.com/Click2Cloud/postgres-nodejs-app.git",
@@ -187,7 +174,7 @@
       },
       "sku": {
         "name": "[parameters('AppServicePlan')]",
-        "capacity": "[parameters('workerSize')]"
+        "capacity": 0
       },
       "properties": {
         "name": "[variables('hostingPlanName')]"
