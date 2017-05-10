@@ -91,9 +91,12 @@
     <Compile Include="routes\index.js" />
     <Compile Include="routes\users.js" />
     <Compile Include="bin\www" />
-    <Content Include="azuredeploy.json" />
+    <Content Include="deploy\azuredeploy.json" />
+    <Content Include="deploy\azuredeploy.parameters.json">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="LICENSE" />
-    <Content Include="metadata.json">
+    <Content Include="deploy\metadata.json">
       <SubType>Code</SubType>
     </Content>
     <Content Include="package.json" />
@@ -119,6 +122,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\" />
+    <Folder Include="deploy\" />
     <Folder Include="public\" />
     <Folder Include="public\fonts\" />
     <Folder Include="public\images\" />
