@@ -3,16 +3,18 @@
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-    <Name>ExpressApp2</Name>
+    <Name>postgres-nodejs-app</Name>
     <RootNamespace>ExpressApp2</RootNamespace>
     <NameOfLastUsedPublishProfile>DayPlannerApp1 - Web Deploy</NameOfLastUsedPublishProfile>
+    <Environment>POSTGRESQLCONNSTR_DefaultConnection=postgres://postgres@postgres-dayplanner:pg%4012345@postgres-dayplanner.database.windows.net:5432/dayplanner</Environment>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>7fe358f9-e388-4487-9636-17acd6825957</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
+    <ProjectHome>
+    </ProjectHome>
     <StartupFile>bin\www</StartupFile>
     <SearchPath>
     </SearchPath>
@@ -20,9 +22,9 @@
     <OutputPath>.</OutputPath>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{349c5851-65df-11da-9384-00065b846f21};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
     <NodejsPort>1337</NodejsPort>
-    <StartWebBrowser>true</StartWebBrowser>
+    <StartWebBrowser>True</StartWebBrowser>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -89,10 +91,11 @@
     <Compile Include="routes\index.js" />
     <Compile Include="routes\users.js" />
     <Compile Include="bin\www" />
-    <None Include="ExpressAppNodeJSPostgres - Web Deploy.pubxml" />
-    <None Include="ExpressAppTest1 - Web Deploy.pubxml" />
-    <None Include="DayPlannerApp - Web Deploy.pubxml" />
-    <None Include="DayPlannerApp1 - Web Deploy.pubxml" />
+    <Content Include="azuredeploy.json" />
+    <Content Include="LICENSE" />
+    <Content Include="metadata.json">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="package.json" />
     <Content Include="public\fonts\glyphicons-halflings-regular.eot" />
     <Content Include="public\fonts\glyphicons-halflings-regular.svg" />

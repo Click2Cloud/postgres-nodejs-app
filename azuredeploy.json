@@ -4,16 +4,10 @@
   "variables": {
     "webSiteName": "[concat('nodejs', uniqueString(resourceGroup().id))]",
     "serverName": "[concat('postgresql', uniqueString(resourceGroup().id))]",
-    "databaseName": "dayplanner"
+    "databaseName": "dayplanner",
+    "hostingPlanName": "[concat(variables('webSiteName'),'-plan')]"
   },
   "parameters": {
-    "hostingPlanName": {
-      "type": "string",
-      "minLength": 1,
-      "metadata": {
-        "description": "The name of the App Service plan to use for hosting the web app."
-      }
-    },
     "skuName": {
       "type": "string",
       "defaultValue": "F1",
