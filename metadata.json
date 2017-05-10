@@ -1,6 +1,6 @@
 ﻿{
-  "itemDisplayName": "Deploy a PostgreSQL server and Node.js web app linked to a GitHub repository",
-  "description": "This template creates a PostgreSQL server and Node.js web app that is linked to a project in a GitHub repository.",
-  "summary": "Deploy a PostgreSQL server and Node.js web app linked to a GitHub repository",
+  "itemDisplayName": "Deploy PostgreSQL server and Node.js web app linked to a GitHub repository",
+  "description": "This template creates PostgreSQL server and Node.js web app that is linked to a project in a GitHub repository.",
+  "summary": "Deploy PostgreSQL server and Node.js web app linked to a GitHub repository",
   "dateUpdated": "2017-05-10"
 }
