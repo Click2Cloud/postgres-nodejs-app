@@ -85,7 +85,7 @@
     "administratorPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "The PostgreSQL database administrator password to use."
+        "description": "The PostgreSQL database administrator password to use. The password must contain character from three of the following categories – English uppercase letters, English lowercase letters, number (0-9), and non-alphanumeric characters (!, $, #, %)."
       }
     },
     "PostgreSQLVersion": {
