@@ -150,6 +150,19 @@ function save_engagement() {
         swal('Warning', 'Please enter end time.', 'warning');
     }
     else {
+        $(".close").click();
+        
+        $.blockUI({
+            css: {
+                border: 'none',
+                padding: '10px 10px 15px 10px',
+                backgroundColor: '#000',
+                '-webkit-border-radius': '10px',
+                '-moz-border-radius': '10px',
+                opacity: .5,
+                color: '#fff'
+            }
+        });
         // ajaxpost to save new engagement
         $.ajax({
             url: '/insert_data',
@@ -164,7 +177,7 @@ function save_engagement() {
                 long: longitude
             },
             success: function (data) {
-                $(".close").click();
+                $.unblockUI()
                 swal('Success', 'Engagement saved successfully.', 'success');
 
                 // reset map after saving new engagement
@@ -178,6 +191,7 @@ function save_engagement() {
                 }
             },
             error: function (err) {
+                $.unblockUI()
                 swal('Error', 'Error while saving Engangement.', 'error');
             }
         });
