@@ -13,7 +13,7 @@ $(document).ready(function () {
     $("#saveengagement").click(function () {
         save_engagement();
     });
- 
+
     $("#newEventModel").click(function () {
         reset_engangement();
     });
@@ -29,6 +29,20 @@ $(document).ready(function () {
             var hour = $("#starttime-name").val().split(':')[0];
             var min = $("#starttime-name").val().split(':')[1];
             selected_start_time = new Date(year, month, day, hour, min);
+            if ($("#endtime-name").val().trim() != "") {
+                var d = new Date();
+                var day = d.getDay();
+                var month = d.getMonth();
+                var year = d.getFullYear();
+                var hour = $("#endtime-name").val().split(':')[0];
+                var min = $("#endtime-name").val().split(':')[1];
+                var selected_end_time = new Date(year, month, day, hour, min)
+                if (selected_end_time <= selected_start_time) {
+                    swal('Warning', 'Start time should be less than End time', 'warning');
+                    $(".form_time[data-link-field='starttime-name'] .glyphicon-remove").click()
+
+                }
+            }
         }
     });
 
@@ -47,8 +61,9 @@ $(document).ready(function () {
 
         // validate start time and end time
         if ($("#starttime-name").val().trim() != "" && $("#endtime-name").val().trim() != "") {
-            if (selected_end_time < selected_start_time) {
+            if (selected_end_time <= selected_start_time) {
                 swal('Warning', 'End time should be greater than Start time', 'warning');
+                $(".form_time[data-link-field='endtime-name'] .glyphicon-remove").click()
             }
         }
     });
@@ -91,21 +106,21 @@ $(document).ready(function () {
 
     // set current date to meeting date datepicker
     $('.form_date').datetimepicker('setDate', new Date);
-   
+
     $("#newEventModel").click(function (event) {
         event.stopPropagation();
         $("#myModal").modal('show');
         return false;
     });
 
-    gMap.loadMap(document.getElementById('map')); 
+    gMap.loadMap(document.getElementById('map'));
     mapContainer = $('#map');
-   
+
     //setting today as current date in date picker
     var date = new Date();
     var today = (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear();
     $("#date-input").val(today);
-    $('.input-datepicker > .input-group-btn > button').click();    
+    $('.input-datepicker > .input-group-btn > button').click();
 
 });
 
@@ -117,14 +132,14 @@ function save_engagement() {
     var end_time = $("#endtime-name").val();
 
     if (title.trim() == "") {
-        swal('Warning', 'Please enter title.', 'warning'); 
+        swal('Warning', 'Please enter title.', 'warning');
     }
     else if ($("#location").val().trim() == "") {
-        swal('Warning', 'Please select location.', 'warning');        
+        swal('Warning', 'Please select location.', 'warning');
     }
-    else if (loc.trim() != $("#location").val().trim() || latitude == "" || longitude == "" ) {
-        swal('Warning', 'Please select valid location.', 'warning');   
-    }
+    /*else if (loc.trim() != $("#location").val().trim() || latitude == "" || longitude == "") {
+        swal('Warning', 'Please select valid location.', 'warning');
+    }*/
     else if (meeting_date.trim() == "") {
         swal('Warning', 'Please enter meeting date.', 'warning');
     }
@@ -133,8 +148,8 @@ function save_engagement() {
     }
     else if (end_time.trim() == "") {
         swal('Warning', 'Please enter end time.', 'warning');
-    }    
-    else {       
+    }
+    else {
         // ajaxpost to save new engagement
         $.ajax({
             url: '/insert_data',
@@ -150,24 +165,22 @@ function save_engagement() {
             },
             success: function (data) {
                 $(".close").click();
-                swal('Success', 'Engagement saved successfully.', 'success');        
+                swal('Success', 'Engagement saved successfully.', 'success');
 
                 // reset map after saving new engagement
-                var d = new Date();
-                var current_day = d.getDate();
-                var current_month = parseInt(d.getMonth()) + 1;
-                var current_year = d.getFullYear(); 
-                var selected_date = meeting_date.split('-')[2];
-                var selected_month = meeting_date.split('-')[1];
-                var selected_year = meeting_date.split('-')[0];
-                if (current_day == selected_date && current_month == selected_month && current_year == selected_year) {
-                    postgres.getAndSetMeetingLocationsData(current_year + "-" + current_month + "-" + current_day);
+                var dateArray = $('.date-picker').data('date').split("/");
+                var selectedMeetingdate = dateArray[2] + "-" + dateArray[0] + "-" + dateArray[1];
+                               
+                var newEngagementDate = meeting_date.split('-')[0] + "-" + meeting_date.split('-')[1] + "-" + meeting_date.split('-')[2];
+               
+                if (selectedMeetingdate == newEngagementDate) {
+                    postgres.getAndSetMeetingLocationsData(selectedMeetingdate);
                 }
             },
             error: function (err) {
                 swal('Error', 'Error while saving Engangement.', 'error');
             }
-        });      
+        });
     }
 
 }
@@ -184,7 +197,7 @@ function reset_engangement() {
 }
 
 function initMap() {
-    
+
 }
 
 

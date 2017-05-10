@@ -84,7 +84,7 @@ var gMap = {
     resetMap: function () {
         gMap.directionsRendererService.setMap(null);
         // gMap.directionsRendererService = null;
-        gMap.directionsRendererService = new google.maps.DirectionsRenderer();
+        gMap.directionsRendererService = new google.maps.DirectionsRenderer({ suppressMarkers: true });
         // gMap.directionsRendererService.setMap(gMap.map);
 
         for (var i = 0; i < gMap.markers.length; i++) {
