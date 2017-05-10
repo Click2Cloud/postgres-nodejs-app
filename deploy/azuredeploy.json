@@ -5,10 +5,12 @@
     "webSiteName": "[concat('nodejs', uniqueString(resourceGroup().id))]",
     "serverName": "[concat('postgresql', uniqueString(resourceGroup().id))]",
     "databaseName": "dayplanner",
-    "hostingPlanName": "[concat(variables('webSiteName'),'-plan')]"
+    "hostingPlanName": "[concat(variables('webSiteName'),'-plan')]",
+    "skuTierPG": "Basic",
+    "skuNamePG": "PGSQLS3M100"
   },
   "parameters": {
-    "skuName": {
+    "AppServicePlan": {
       "type": "string",
       "defaultValue": "F1",
       "allowedValues": [
@@ -56,19 +58,37 @@
         "description": "The branch of the GitHub repository to use."
       }
     },
+    "PostgreSQLComputeUnit": {
+      "type": "int",
+      "defaultValue": 50,
+      "minValue": 50,
+      "maxValue": 100,
+      "metadata": {
+        "description": "The PostgreSQL database Compute Unit to use."
+      }
+    },
+    "PostgreSQLStorageGB": {
+      "type": "int",
+      "defaultValue": 50,
+      "minValue": 50,
+      "maxValue": 1050,
+      "metadata": {
+        "description": "The PostgreSQL database storage size to use. (Can be increased by 125 GB)"
+      }
+    },
     "administratorLogin": {
       "type": "string",
       "metadata": {
         "description": "The PostgreSQL database administrator username to use."
       }
     },
-    "administratorLoginPassword": {
+    "administratorPassword": {
       "type": "securestring",
       "metadata": {
         "description": "The PostgreSQL database administrator password to use."
       }
     },
-    "version": {
+    "PostgreSQLVersion": {
       "type": "string",
       "defaultValue": "9.6",
       "allowedValues": [
@@ -79,51 +99,24 @@
         "description": "The PostgreSQL version to use."
       }
     },
-    "location": {
+    "PostgreSQLLocation": {
       "type": "string",
-      "defaultValue": "westus",
+      "defaultValue": "Southeast Asia",
       "allowedValues": [
-        "northeurope",
-        "westus",
-        "westeurope"
+        "East Asia",
+        "East US",
+        "East US 2",
+        "Japan East",
+        "Japan West",
+        "North Central US",
+        "North Europe",
+        "South Central US",
+        "Southeast Asia",
+        "West Europe",
+        "West US"
       ],
       "metadata": {
         "description": "The PostgreSQL database location to use."
-      }
-    },
-    "skuCapacityDTUPG": {
-      "type": "int",
-      "defaultValue": 100,
-      "metadata": {
-        "description": "The PostgreSQL database Capacity to use."
-      }
-    },
-    "skuFamilyPG": {
-      "type": "string",
-      "defaultValue": "SkuFamily",
-      "metadata": {
-        "description": "The PostgreSQL database Family to use."
-      }
-    },
-    "skuNamePG": {
-      "type": "string",
-      "defaultValue": "PGSQLS3M100",
-      "metadata": {
-        "description": "The PostgreSQL database name to use."
-      }
-    },
-    "skuSizeMBPG": {
-      "type": "int",
-      "defaultValue": 51200,
-      "metadata": {
-        "description": "The PostgreSQL database storage size to use."
-      }
-    },
-    "skuTierPG": {
-      "type": "string",
-      "defaultValue": "Basic",
-      "metadata": {
-        "description": "The PostgreSQL database Pricing tier to use."
       }
     }
   },
@@ -133,25 +126,24 @@
       "name": "[variables('serverName')]",
       "type": "Microsoft.DBforPostgreSQL/servers",
       "sku": {
-        "name": "[parameters('skuNamePG')]",
-        "tier": "[parameters('skuTierPG')]",
-        "capacity": "[parameters('skuCapacityDTUPG')]",
-        "size": "[parameters('skuSizeMBPG')]",
-        "family": "[parameters('skuFamilyPG')]"
+        "name": "[variables('skuNamePG')]",
+        "tier": "[variables('skuTierPG')]",
+        "capacity": "[parameters('PostgreSQLComputeUnit')]",
+        "size": "[parameters('PostgreSQLStorageGB')]"
       },
-      "location": "[parameters('location')]",
+      "location": "[parameters('PostgreSQLLocation')]",
       "properties": {
-        "version": "[parameters('version')]",
+        "version": "[parameters('PostgreSQLVersion')]",
         "administratorLogin": "[parameters('administratorLogin')]",
-        "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
-        "storageMB": "[parameters('skuSizeMBPG')]"
+        "administratorLoginPassword": "[parameters('administratorPassword')]",
+        "storageMB": "[parameters('PostgreSQLStorageGB')]"
       },
       "resources": [
         {
           "apiVersion": "2017-04-30-preview",
           "name": "[variables('databaseName')]",
           "type": "databases",
-          "location": "[parameters('location')]",
+          "location": "[parameters('PostgreSQLLocation')]",
           "tags": {
             "displayName": "PSQLDatabase"
           },
@@ -165,7 +157,7 @@
           "apiVersion": "2017-04-30-preview",
           "name": "PSQLServerFirewallRule",
           "type": "firewallrules",
-          "location": "[parameters('location')]",
+          "location": "[parameters('PostgreSQLLocation')]",
           "dependsOn": [
             "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
           ],
@@ -185,7 +177,7 @@
         "displayName": "HostingPlan"
       },
       "sku": {
-        "name": "[parameters('skuName')]",
+        "name": "[parameters('AppServicePlan')]",
         "capacity": "[parameters('workerSize')]"
       },
       "properties": {
@@ -219,7 +211,7 @@
           ],
           "properties": {
             "DefaultConnection": {
-              "value": "[concat('postgres://', parameters('administratorLogin'), '@',  variables('serverName'), ':', uriComponent(parameters('administratorLoginPassword')), '@', reference(resourceId('Microsoft.DBforPostgreSQL/servers/', variables('serverName'))).fullyQualifiedDomainName, ':5432/', variables('databaseName'))]",
+              "value": "[concat('postgres://', parameters('administratorLogin'), '@',  variables('serverName'), ':', uriComponent(parameters('administratorPassword')), '@', reference(resourceId('Microsoft.DBforPostgreSQL/servers/', variables('serverName'))).fullyQualifiedDomainName, ':5432/', variables('databaseName'), '?ssl=true')]",
               "type": "PostgreSQL"
             }
           }
