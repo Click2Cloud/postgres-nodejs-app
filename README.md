@@ -10,7 +10,7 @@ Get hands-on and learn how to build and deploy PostgreSQL Database Services and 
 ## Pre-requisites for the Lab
 If you don't have an Azure subscription, create a [free account](https://azure.microsoft.com/en-us/free/?WT.mc_id=A261C142F) before you begin.
 
-### Deployment Instructions
+## Deployment Instructions
 Perform following steps to Deploy Nodejs web application in Azure and connect it to PostgreSQL.
 
 1. Click on __Deploy to Azure__, It will redirect you to custom deployment window of Azure Portal.
@@ -36,7 +36,7 @@ Perform following steps to Deploy Nodejs web application in Azure and connect it
 It will take few minutes to deploy web application and create PostgreSQL Database, after successful deployment you can browse web application.
 
 
-### Clean up
+## Clean up
 
 To clean up the Azure assets:
 
