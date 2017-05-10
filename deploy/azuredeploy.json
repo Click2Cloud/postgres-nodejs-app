@@ -70,8 +70,17 @@
     "PostgreSQLStorageGB": {
       "type": "int",
       "defaultValue": 50,
-      "minValue": 50,
-      "maxValue": 1050,
+      "allowedValues": [
+        50,
+        175,
+        300,
+        452,
+        550,
+        675,
+        800,
+        925,
+        1050
+      ],
       "metadata": {
         "description": "The PostgreSQL database storage size to use. (Can be increased by 125 GB)"
       }
@@ -129,14 +138,14 @@
         "name": "[variables('skuNamePG')]",
         "tier": "[variables('skuTierPG')]",
         "capacity": "[parameters('PostgreSQLComputeUnit')]",
-        "size": "[parameters('PostgreSQLStorageGB')]"
+        "size": "[mul(parameters('PostgreSQLStorageGB'), 1024)]"
       },
       "location": "[parameters('PostgreSQLLocation')]",
       "properties": {
         "version": "[parameters('PostgreSQLVersion')]",
         "administratorLogin": "[parameters('administratorLogin')]",
         "administratorLoginPassword": "[parameters('administratorPassword')]",
-        "storageMB": "[parameters('PostgreSQLStorageGB')]"
+        "storageMB": "[mul(parameters('PostgreSQLStorageGB'), 1024)]"
       },
       "resources": [
         {
