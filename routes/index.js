@@ -8,7 +8,7 @@ var pg = require("pg"); // require Postgres module
 // connection string  with special character handling in user and password
 
 var conString = process.env.POSTGRESQLCONNSTR_DefaultConnection;
-conString = "postgres://postgres@postgresqlat2ocfj7phzsk:pg%4012345@postgresqlat2ocfj7phzsk.postgres.database.azure.com:5432/postgres?ssl=true";
+
 
 /* GET home page. */
 router.get('/', function (req, res) {
