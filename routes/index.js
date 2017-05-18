@@ -25,7 +25,7 @@ router.put('/insert_data', (req, res, next) => {
             console.log(err);
             return res.status(500).json({ success: false, data: err });
         }
-        var str = "INSERT INTO engagements(loc_name, title, date, start_time, end_time, location) VALUES ('" + req.body.loc_name + "', '" + req.body.title + "', '" + req.body.meeting_date + "', '" + req.body.start_time + "', '" + req.body.end_time + "', point('" + req.body.lat + "', '" + req.body.long + "'))";
+        var str = "INSERT INTO engagements(loc_name, title, date, start_time, end_time, location) VALUES ('" + req.body.loc_name + "', '" + req.body.title + "', '" + req.body.meeting_date + "', '" + req.body.start_time + "', '" + req.body.end_time + "', ST_GeographyFromText('point(" + req.body.long + " " + req.body.lat + ")'));";
         var query = client.query(str);
         // Stream results back one row at a time
         console.log(results);
@@ -77,7 +77,7 @@ router.get('/api/v1/GetMeetingData', (req, res, next) => {
 
             //verifying if table exists to retrieve data directly for meeting date
             if (table_result[0].exists == true) {
-                const meetingDataQuery = client.query("select array_to_json(array_agg(row_to_json(t))) as meeting_data from (select loc_id, loc_name, title, date, to_char(start_time::time, 'HH12:MI AM') as start, to_char(end_time::time, 'HH12:MI AM') as end, location from engagements where date = $1 ORDER BY start_time ) as t;", [meeting_date]);
+                const meetingDataQuery = client.query("select array_to_json(array_agg(row_to_json(t))) as meeting_data from (select loc_id, loc_name, title, date, to_char(start_time::time, 'HH12:MI AM') as start, to_char(end_time::time, 'HH12:MI AM') as end, ST_AsGeoJSON(location)::json As geometry from engagements where date = $1 ORDER BY start_time ) as t;", [meeting_date]);
 
                 meetingDataQuery.on('row', (row) => {
                     results.push(row);
@@ -100,25 +100,27 @@ router.get('/api/v1/GetMeetingData', (req, res, next) => {
 
 function createTableAndSampleData(res, client, done, meeting_date) {
     const results = [];
-    const query = "CREATE TABLE engagements ( \
+    const query = "CREATE EXTENSION postgis SCHEMA public VERSION '2.3.2';\
+                   CREATE TABLE engagements ( \
                             loc_id integer NOT NULL, \
                             loc_name character varying(255), \
                             title character varying(255), \
                             date date, \
                             start_time time without time zone, \
                             end_time time without time zone, \
-                            location point); \
+                            location geography(Point)); \
                             ALTER TABLE public.engagements OWNER TO postgres; \
                             CREATE SEQUENCE engagements_loc_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1; \
                             ALTER TABLE public.engagements_loc_id_seq OWNER TO postgres; \
                             ALTER SEQUENCE engagements_loc_id_seq OWNED BY engagements.loc_id; \
                             ALTER TABLE ONLY engagements ALTER COLUMN loc_id SET DEFAULT nextval('engagements_loc_id_seq'::regclass); \
                             ALTER TABLE ONLY engagements ADD CONSTRAINT engagements_pkey PRIMARY KEY (loc_id); \
-                            INSERT INTO engagements(loc_name, title, date, start_time, end_time, location) VALUES ('Redmond, WA, USA', 'First Engagement', CURRENT_DATE, '10:00 AM', '11:00 AM', point(47.676295, -122.095741)), \
-                                ('Seattle, WA, USA', 'Second Engagement', CURRENT_DATE, '1:00 PM', '2:00 PM', point(47.592306, -122.329064)), \
-                                ('Bellevue, WA, USA', 'Third Engagement', CURRENT_DATE, '3:00 PM', '4:00 PM', point(47.610139, -122.201489)), \
-                                ('Renton, WA, USA', 'Fourth Engagement', CURRENT_DATE, '5:30 PM', '6:00 PM', point(47.471115, -122.218031)), \
-                                ('Tacoma, WA, USA', 'Last Engagement', CURRENT_DATE, '7:00 PM', '8:00 PM', point(47.233862, -122.457853));";
+                            INSERT INTO engagements(loc_name, title, date, start_time, end_time, location) VALUES\
+                            ('Redmond, WA, USA', 'First Engagement', CURRENT_DATE, '10:00 AM', '11:00 AM', ST_GeographyFromText('point(-122.095741 47.676295)')),\
+                            ('Seattle, WA, USA', 'Second Engagement', CURRENT_DATE, '1:00 PM', '2:00 PM', ST_GeographyFromText('point(-122.329064 47.592306)')),\
+                            ('Bellevue, WA, USA', 'Third Engagement', CURRENT_DATE, '3:00 PM', '4:00 PM', ST_GeographyFromText('point(-122.201489 47.610139)')),\
+                            ('Renton, WA, USA', 'Fourth Engagement', CURRENT_DATE, '5:30 PM', '6:00 PM', ST_GeographyFromText('point(-122.218031 47.471115)')),\
+                            ('Tacoma, WA, USA', 'Last Engagement', CURRENT_DATE, '7:00 PM', '8:00 PM', ST_GeographyFromText('point(-122.457853 47.233862)'));";
 
     const createTableQuery = client.query(query);
 
@@ -128,7 +130,7 @@ function createTableAndSampleData(res, client, done, meeting_date) {
 
     createTableQuery.on('end', (row) => {
 
-        const meetingDataquery = client.query("select array_to_json(array_agg(row_to_json(t))) as meeting_data from (select loc_id, loc_name, title, date, to_char(start_time::time, 'HH12:MI AM') as start, to_char(end_time::time, 'HH12:MI AM') as end, location from engagements where date = $1 ORDER BY start_time ) as t;", [meeting_date]);
+        const meetingDataquery = client.query("select array_to_json(array_agg(row_to_json(t))) as meeting_data from (select loc_id, loc_name, title, date, to_char(start_time::time, 'HH12:MI AM') as start, to_char(end_time::time, 'HH12:MI AM') as end, ST_AsGeoJSON(location)::json As geometry from engagements where date = $1 ORDER BY start_time ) as t;", [meeting_date]);
 
         meetingDataquery.on('row', (row) => {
             results.push(row);

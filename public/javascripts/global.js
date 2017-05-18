@@ -116,11 +116,8 @@ var gMap = {
 
         //segregating meeting data for lat-long and meeting content
         for (var i = 0; i < meetingData.length; i++) {
-            var latlong = meetingData[i].location;
-            var lat = latlong.split(',')[0];
-            var long = latlong.split(',')[1];
-            lat = lat.substring(1, lat.length);
-            long = long.substring(0, long.length - 1);
+            var lat = meetingData[i].geometry.coordinates["1"];
+            var long = meetingData[i].geometry.coordinates["0"];
 
             latlongarray.push(new google.maps.LatLng(lat, long));
 
