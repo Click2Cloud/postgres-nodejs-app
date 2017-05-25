@@ -45,7 +45,13 @@ $(document).ready(function () {
             }
         }
     });
+    //$(".form_date").change(function () {
+    //    $(".datetimepicker-hours .switch:eq(1)").html($(".form-control:eq(3)").val())
+    //    $(".datetimepicker-hours .switch:eq(2)").html($(".form-control:eq(3)").val())
+    //    $(".datetimepicker-minutes .switch:eq(1)").text($(".form-control:eq(3)").val())        
+    //    $(".datetimepicker-minutes .switch:eq(2)").text($(".form - control:eq(3)").val())
 
+    //});
     $(".form_time[data-link-field='endtime-name']").change(function () {
         // set start time value in selected_end_time variable
         selected_end_time = "";
@@ -122,10 +128,12 @@ $(document).ready(function () {
     $("#date-input").val(today);
     $('.input-datepicker > .input-group-btn > button').click();
 
+   
 });
 
 // Save new engagement to DB
 function save_engagement() {
+
     var title = $("#title-name").val();
     var meeting_date = $("#meetingdate-name").val();
     var start_time = $("#starttime-name").val();
@@ -151,18 +159,8 @@ function save_engagement() {
     }
     else {
         $(".close").click();
-        
-        $.blockUI({
-            css: {
-                border: 'none',
-                padding: '10px 10px 15px 10px',
-                backgroundColor: '#000',
-                '-webkit-border-radius': '10px',
-                '-moz-border-radius': '10px',
-                opacity: .5,
-                color: '#fff'
-            }
-        });
+        //function call to display loader.
+        gMap.displayLoader()        
         // ajaxpost to save new engagement
         $.ajax({
             url: '/insert_data',
@@ -177,20 +175,22 @@ function save_engagement() {
                 long: longitude
             },
             success: function (data) {
+                //stop loader
                 $.unblockUI()
                 swal('Success', 'Engagement saved successfully.', 'success');
 
                 // reset map after saving new engagement
                 var dateArray = $('.date-picker').data('date').split("/");
                 var selectedMeetingdate = dateArray[2] + "-" + dateArray[0] + "-" + dateArray[1];
-                               
+
                 var newEngagementDate = meeting_date.split('-')[0] + "-" + meeting_date.split('-')[1] + "-" + meeting_date.split('-')[2];
-               
+
                 if (selectedMeetingdate == newEngagementDate) {
                     postgres.getAndSetMeetingLocationsData(selectedMeetingdate);
                 }
             },
             error: function (err) {
+                //stop loader
                 $.unblockUI()
                 swal('Error', 'Error while saving Engangement.', 'error');
             }
