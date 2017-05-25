@@ -6,11 +6,10 @@
     "serverName": "[concat('postgresql', uniqueString(resourceGroup().id))]",
     "databaseName": "dayplanner",
     "hostingPlanName": "[concat(variables('webSiteName'),'-plan')]",
-    "skuTierPG": "Basic",
-    "skuNamePG": "PGSQLS3M100"
+    "searchServiceName": "[concat('gis-service', uniqueString(resourceGroup().id))]"
   },
   "parameters": {
-    "AppServicePlan": {
+    "appServicePlan": {
       "type": "string",
       "defaultValue": "F1",
       "allowedValues": [
@@ -45,46 +44,51 @@
         "description": "The branch of the GitHub repository to use."
       }
     },
-    "PostgreSQLComputeUnit": {
-      "type": "int",
-      "defaultValue": 50,
-      "minValue": 50,
-      "maxValue": 100,
+    "postgresServiceTier": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "Standard"
+      ],
       "metadata": {
-        "description": "The PostgreSQL database Compute Unit to use."
+        "description": "The pricing tier for the PostgreSQL service. Choose 'Basic' for workloads that scale with variable IOPS else 'Standard' for workloads that require on-demand scaling optimized for high throughput with provisioned IOPS."
       }
     },
-    "PostgreSQLStorageGB": {
+    "postgresComputeUnit": {
       "type": "int",
       "defaultValue": 50,
       "allowedValues": [
         50,
-        175,
-        300,
-        452,
-        550,
-        675,
-        800,
-        925,
-        1050
+        100,
+        200,
+        400,
+        800
       ],
       "metadata": {
-        "description": "The PostgreSQL database storage size to use. (Can be increased by 125 GB)"
+        "description": "The PostgreSQL database Compute Unit to use. For 'Basic' tier, expected values are 50 and 100. For 'Standard' tier, expected values are 100,200,400 and 800."
       }
     },
-    "administratorLogin": {
+    "postgresStorageGB": {
+      "type": "int",
+      "defaultValue": 50,
+      "metadata": {
+        "description": "The PostgreSQL database storage size to use. For 'Basic' tier, maximum value is 1050 and for 'Standard' tier, maximum value is 10000 (Can be increased by 125 GB)"
+      }
+    },
+    "postgresAdministratorLogin": {
       "type": "string",
       "metadata": {
         "description": "The PostgreSQL database administrator username to use."
       }
     },
-    "administratorPassword": {
+    "postgresAdministratorPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "The PostgreSQL database administrator password to use. The password must contain character from three of the following categories – English uppercase letters, English lowercase letters, number (0-9), and non-alphanumeric characters (!, $, #, %)."
+        "description": "The PostgreSQL database administrator password to use. The password must contain character from three of the following categories ï¿½ English uppercase letters, English lowercase letters, number (0-9), and non-alphanumeric characters (!, $, #, %)."
       }
     },
-    "PostgreSQLVersion": {
+    "postgresVersion": {
       "type": "string",
       "defaultValue": "9.6",
       "allowedValues": [
@@ -95,9 +99,9 @@
         "description": "The PostgreSQL version to use."
       }
     },
-    "PostgreSQLLocation": {
+    "postgresLocation": {
       "type": "string",
-      "defaultValue": "Southeast Asia",
+      "defaultValue": "West Europe",
       "allowedValues": [
         "East Asia",
         "East US",
@@ -112,7 +116,21 @@
         "West US"
       ],
       "metadata": {
-        "description": "The PostgreSQL database location to use."
+        "description": "The PostgreSQL server location to use."
+      }
+    },
+    "searchServiceSku": {
+      "type": "string",
+      "defaultValue": "free",
+      "allowedValues": [
+        "free",
+        "basic",
+        "standard",
+        "standard2",
+        "standard3"
+      ],
+      "metadata": {
+        "description": "The SKU of the search service you want to create. E.g. free or standard"
       }
     }
   },
@@ -122,24 +140,23 @@
       "name": "[variables('serverName')]",
       "type": "Microsoft.DBforPostgreSQL/servers",
       "sku": {
-        "name": "[variables('skuNamePG')]",
-        "tier": "[variables('skuTierPG')]",
-        "capacity": "[parameters('PostgreSQLComputeUnit')]",
-        "size": "[mul(parameters('PostgreSQLStorageGB'), 1024)]"
+        "tier": "[parameters('postgresServiceTier')]",
+        "capacity": "[parameters('postgresComputeUnit')]",
+        "size": "[mul(parameters('postgresStorageGB'), 1024)]"
       },
-      "location": "[parameters('PostgreSQLLocation')]",
+      "location": "[parameters('postgresLocation')]",
       "properties": {
-        "version": "[parameters('PostgreSQLVersion')]",
-        "administratorLogin": "[parameters('administratorLogin')]",
-        "administratorLoginPassword": "[parameters('administratorPassword')]",
-        "storageMB": "[mul(parameters('PostgreSQLStorageGB'), 1024)]"
+        "version": "[parameters('postgresVersion')]",
+        "administratorLogin": "[parameters('postgresAdministratorLogin')]",
+        "administratorLoginPassword": "[parameters('postgresAdministratorPassword')]",
+        "storageMB": "[mul(parameters('postgresStorageGB'), 1024)]"
       },
       "resources": [
         {
           "apiVersion": "2017-04-30-preview",
           "name": "[variables('databaseName')]",
           "type": "databases",
-          "location": "[parameters('PostgreSQLLocation')]",
+          "location": "[parameters('postgresLocation')]",
           "tags": {
             "displayName": "PSQLDatabase"
           },
@@ -153,7 +170,7 @@
           "apiVersion": "2017-04-30-preview",
           "name": "PSQLServerFirewallRule",
           "type": "firewallrules",
-          "location": "[parameters('PostgreSQLLocation')]",
+          "location": "[parameters('postgresLocation')]",
           "dependsOn": [
             "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
           ],
@@ -161,8 +178,81 @@
             "endIpAddress": "255.255.255.255",
             "startIpAddress": "0.0.0.0"
           }
+        },
+        {
+          "type": "Microsoft.Insights/alertRules",
+          "name": "CPU-Alert",
+          "apiVersion": "2016-03-01",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+          ],
+          "properties": {
+              "name": "CPU-Alert",
+              "description": "Default alert which notify when cpu percent is greater than 80%",
+              "isEnabled": "true",
+              "condition": {
+                  "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
+                  "dataSource": {
+                      "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
+                      "resourceUri": "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]",
+                      "metricName": "cpu_percent"
+                  },
+                  "operator": "GreaterThan",
+                  "threshold": "80",
+                  "windowSize": "00:05:00",
+                  "timeAggregation": "Average"
+              },
+              "actions": [
+                  {
+                      "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
+                      "sendToServiceOwners": "true"
+                  }
+              ]
+          }
+        },
+        {
+            "type": "Microsoft.Insights/alertRules",
+            "name": "Storage-Alert",
+            "apiVersion": "2016-03-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+            ],
+            "properties": {
+                "name": "Storate_Alert",
+                "description": "Default alert which notify when storage percent is greater than 80%",
+                "isEnabled": "true",
+                "condition": {
+                    "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
+                        "resourceUri": "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]",
+                        "metricName": "storage_percent"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": "80",
+                    "windowSize": "00:05:00",
+                    "timeAggregation": "Average"
+                },
+                "actions": [
+                    {
+                        "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
+                        "sendToServiceOwners": "true"
+                    }
+                ]
+            }
         }
       ]
+    },
+    {
+      "apiVersion": "2015-08-19",
+      "name": "[variables('searchServiceName')]",
+      "type": "Microsoft.Search/searchServices",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "[toLower(parameters('searchServiceSku'))]"
+      }
     },
     {
       "apiVersion": "2015-08-01",
@@ -186,7 +276,9 @@
       "type": "Microsoft.Web/sites",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverFarms/', variables('hostingPlanName'))]"
+        "[resourceId('Microsoft.Web/serverFarms/', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.DBforPostgreSQL/servers/', variables('serverName'))]",
+        "[resourceId('Microsoft.Search/searchServices', variables('searchServiceName'))]"
       ],
       "tags": {
         "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]": "empty",
@@ -207,9 +299,25 @@
           ],
           "properties": {
             "DefaultConnection": {
-              "value": "[concat('postgres://', parameters('administratorLogin'), '@',  variables('serverName'), ':', uriComponent(parameters('administratorPassword')), '@', reference(resourceId('Microsoft.DBforPostgreSQL/servers/', variables('serverName'))).fullyQualifiedDomainName, ':5432/', variables('databaseName'), '?ssl=true')]",
+              "value": "[concat('postgres://', parameters('postgresAdministratorLogin'), '@',  variables('serverName'), ':', uriComponent(parameters('postgresAdministratorPassword')), '@', reference(resourceId('Microsoft.DBforPostgreSQL/servers/', variables('serverName'))).fullyQualifiedDomainName, ':5432/', variables('databaseName'), '?ssl=true')]",
               "type": "PostgreSQL"
             }
+          }
+        },
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+              "[resourceId('Microsoft.Web/Sites/', variables('webSiteName'))]",
+            "[resourceId('Microsoft.Search/searchServices', variables('searchServiceName'))]"
+          ],
+          "tags": {
+              "displayName": "WebAppSettings"
+          },
+          "properties": {
+              "searchServicePrimaryKey": "[listAdminKeys(resourceId('Microsoft.Search/searchServices', variables('searchServiceName')), '2015-08-19').primaryKey]",
+              "searchServiceUri": "[concat('https://', variables('searchServiceName'), '.search.windows.net')]"
           }
         },
         {
